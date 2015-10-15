@@ -1,0 +1,5 @@
+name = Contents on chart
+description = Show details of content type on chart
+package = content
+dependencies[]  =   date
+core = 7.x

@@ -1,0 +1,206 @@
+<?php
+function contents_on_chart_init() {
+    
+}
+/**
+ * HOOK_MENU
+ */
+function contents_on_chart_menu() {
+    $items                                            = array();
+    $items['admin/config/contents_on_chart']          = array(
+        'title' => 'content charts',
+        'description' => 'This menu shows contents on chart',
+        'position' => 'left',
+        'weight' => -100,
+        'page callback' => 'system_admin_menu_block_page',
+        'access arguments' => array('administer site configuration'),
+        'file' => 'system.admin.inc',
+        'file path' => drupal_get_path('module', 'system')
+    );
+    $items['admin/config/contents_on_chart/form'] = array(
+        'title' => 'Form for Nodes Display',
+        'description' => 'chart of nodes',
+        'page arguments'=>array('contents_on_chart_form'),
+        'page callback' => 'drupal_get_form',
+        'access arguments' => array('administer site configuration'),
+        'weight'=>-100,
+    );
+    $items['admin/config/contents_on_chart/nodes'] = array(
+        'title' => 'Number of nodes in content types',
+        'description' => 'Display chart total number of nodes in diffrent diffrent content types',
+        'page callback'=>array('contents_on_chart_page'),
+        'access arguments' => array('administer site configuration')
+    );
+    $items['admin/config/contents_on_chart/date-wise-nodes'] = array(
+        'title' => 'Date wise nodes chart in all content type',
+        'description' => 'Display date wise nodes',
+        'page callback'=>array('contents_on_chart_date_wise_page'),
+        'access arguments' => array('administer site configuration')
+    );
+    $items['admin/config/contents_on_chart/user-wise-nodes'] = array(
+        'title' => 'User wise nodes chart in all content type',
+        'description' => 'User wise nodes',
+        'page callback'=>array('contents_on_chart_user_wise_page'),
+        'access arguments' => array('administer site configuration')
+    );
+    return $items;
+  }
+
+/**
+ * HOOK_FROM
+ */
+function contents_on_chart_only_type_form($form, &$form_state) {
+    $default            =   isset($_GET['chartType'])?$_GET['chartType']:"";
+    $form['chartType'] = array(
+        '#type'=>'select',
+        '#options'=>array("bar"=>"bar","area"=>"area","line"=>"line" ,"pie"=>"pie"),
+        '#title'=> t('Choose Chart Type :'),
+        '#default_value'=>array("$default"),
+    );
+    $form['submit'] = array(
+          '#type'=>'submit',
+          '#value'=>t('submit'),
+    );
+
+    return $form;
+  }
+  
+/**
+ * HOOK_FORM
+ */
+function contents_on_chart_form($form, &$form_state) {
+  $form     =   array();
+  $options  =   array();
+  $options['_All'] =   'All';
+  $format = 'M,d,y';
+  foreach(node_type_get_types() as $key=>$data) {
+      $options[$key]    =   $data->name;
+  }
+  asort($options);
+  $form['dateFrom'] = array(
+        '#type'=>'date_select',
+        '#title'=> t('Date from :'),
+        '#default_value' => date('M,d,y'), 
+        '#date_format' => $format,
+  );
+  $form['dateTo'] = array(
+        '#type'=>'date_select',
+        '#title'=>t('Date to :'),
+        '#default_value' => date('M,d,y'), 
+        '#date_format' => $format,
+  );
+  $form['contentTypes'] = array(
+        '#type'=>'select',
+        '#options'=>$options,
+        '#title'=> t('Choose content type :'),
+  );
+  $form['chartType'] = array(
+        '#type'=>'select',
+        '#options'=>array("bar"=>"bar","area"=>"area","line"=>"line" ,"pie"=>"pie"),
+        '#title'=> t('Choose Chart Type :'),
+  );
+  $form['submit'] = array(
+        '#type'=>'submit',
+        '#value'=>t('submit'),
+  );
+  
+  return $form;
+}
+
+/**
+ * HOOK_FROM_VALIDATE
+ */
+function contents_on_chart_form_validate($form,&$form_state) {
+    $values     =   $form_state['values'];
+    $dateFrom   =   strtotime($values['dateFrom']);
+    $dateTo     =   strtotime($values['dateTo']);
+    $today      =   time();
+    if($dateFrom>$dateTo) {
+        form_set_error('dateFrom','date from : can\'t be geather than date to :');
+    }
+}
+
+/**
+ * HOOK_FORM_SUBMIT
+ */
+function contents_on_chart_form_submit($form,&$form_state) {
+    $values     =   $form_state['values'];
+    $dateFrom   =   isset($values['dateFrom'])?strtotime($values['dateFrom']):0;
+    $dateTo     =   isset($values['dateTo'])?strtotime($values['dateTo']):0;
+    $ctype      =   $values['contentTypes'];
+    $result     =   array();
+    $data['chartType']    =   $values['chartType'];
+    $query      =   db_select('node','n');
+                    $query->fields('n',array());
+                    if($dateFrom>0 && $dateTo>0) {
+                        $query->condition('n.created', $dateFrom,'>=');
+                        $dateTo =   $dateTo+86400;
+                        $query->condition('n.created', $dateTo,'<=');
+                    }
+                    if($ctype!='_All') {
+                        $query->condition('n.type',$ctype);
+                    }
+    $data['nodeData']       =   $query->execute()->fetchAll(PDO::FETCH_ASSOC);
+    $data['date']['from']   =   $values['dateFrom'];
+    $data['date']['to']     =   $values['dateTo'];
+    variable_set('contents_on_chart_data', $data);
+    drupal_goto('admin/config/contents_on_chart/nodes');
+}
+
+/**
+ * THEME CALLBACK FUNTION to display nodes in content types
+ */
+function contents_on_chart_page() {
+    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/Chart.js', 'file');
+    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/content_on_chart.js', 'file');
+    return (variable_get('contents_on_chart_data'))?theme('nodes_chart'):"Please submit form before diaplay chart";
+}
+
+/**
+ * THEME CALLBACK FUNTION to display date wise nodes in content types
+ */
+function contents_on_chart_date_wise_page() {
+    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/Chart.js', 'file');
+    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/content_on_chart.js', 'file');
+    return (variable_get('contents_on_chart_data'))?theme('date_wise_nodes_chart'):"Please submit form before diaplay chart";
+}
+/**
+ * THEME CALLBACK FUNTION to display user wise nodes in content types
+ */
+function contents_on_chart_user_wise_page() {
+    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/Chart.js', 'file');
+    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/content_on_chart.js', 'file');
+    return (variable_get('contents_on_chart_data'))?theme('user_wise_nodes_chart'):"Please submit form before diaplay chart";
+}
+
+/**
+ * hook_theme
+ */
+function contents_on_chart_theme() {
+    $themes = array (
+        'nodes_chart' => array(
+            'template' => 'templates/nodes-chart', 
+        ) ,
+        'date_wise_nodes_chart' => array(
+            'template' => 'templates/date-wise-node-chart', 
+        ) ,
+        'user_wise_nodes_chart' => array(
+            'template' => 'templates/user-wise-node-chart', 
+        ) ,
+    );
+    return $themes;
+}
+
+/**
+ * Checker function
+ */
+
+function contents_on_chart_verify_chartType($chart){
+    $charts =   array("bar"=>"bar","area"=>"area","line"=>"line" ,"pie"=>"pie");
+    if(in_array($chart, $charts)) {
+        return $chart;
+    }
+    else {
+        return "bar";
+    }
+}
