@@ -21,7 +21,7 @@ function contents_on_chart_menu() {
     );
     $items['admin/config/contents_on_chart/form'] = array(
         'title' => 'Form for Nodes Display',
-        'description' => 'chart of nodes',
+        'description' => 'Chart create form',
         'page arguments'=>array('contents_on_chart_form'),
         'page callback' => 'drupal_get_form',
         'access arguments' => array('administer site configuration'),
@@ -29,7 +29,7 @@ function contents_on_chart_menu() {
     );
     $items['admin/config/contents_on_chart/data/number-nodes'] = array(
         'title' => 'Number of nodes in content types',
-        'description' => 'Display chart total number of nodes in diffrent diffrent content types',
+        'description' => 'Nodes in each content types',
         'page callback'=>array('contents_on_chart_page'),
         'access arguments' => array('administer site configuration')
     );
@@ -188,6 +188,7 @@ function contents_on_chart_page() {
     }
     drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/Chart.js', 'file');
     drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/content_on_chart.js', 'file');
+    drupal_add_css(drupal_get_path('module', 'contents_on_chart') .'/css/contents_on_chart.css', 'file');
     return (variable_get('contents_on_chart_data'))?theme($callTpl,array("form"=>$form,"extra"=>$extra)):"Please submit form before diaplay chart";
 }
 

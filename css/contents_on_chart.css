@@ -1,0 +1,78 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Oct 16, 2015, 6:20:23 PM
+    Author     : rajveers
+*/
+
+.content_on_charts {
+    width: 100% !important;
+}
+ul.content_on_charts { 
+clear: both; 
+float: left; 
+list-style: none; 
+margin: 0px 10px 0 0px; 
+border-bottom:1px solid #333333; /*Remove to create tab effect*/ 
+width:500px; /*If tab effect is not being used, this will define how long the bottom border will be*/  
+}
+
+ul.content_on_charts li { 
+display: inline; 
+list-style: none;
+}
+
+ul.content_on_charts li a { 
+margin-right:5px; 
+color: #FFFFFF; 
+display: block; 
+float:left; 
+font: 14px/100% Arial, Helvetica, sans-serif; 
+line-height: 32px; 
+text-decoration: none; 
+vertical-align: middle; 
+padding: 0 10px; 
+background-color:#000000; /*A basic background color is set incase the image will not load*/ 
+border:1px solid #333333; 
+border-bottom:none;  
+}
+#chartContainer {
+    float: left;
+}
+#contents-on-chart-only-type-form{
+        float: left;
+    width: 100%;
+}
+
+#contents-on-chart-only-type-form  {
+   text-decoration: none;
+   vertical-align: middle;
+   padding:5px;
+   }
+   #contents-on-chart-only-type-form label {
+        float: left;
+         margin: 5px;
+   }
+#contents-on-chart-only-type-form button[type=submit] , #contents-on-chart-only-type-form select {
+   border: 1px solid #447314;
+   float: left;
+   -webkit-border-radius: 0px;
+   -moz-border-radius: 0px;
+   border-radius: 0px;
+   -webkit-box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+   -moz-box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+   box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+   padding: 8.5px 18px;
+   font-size: 14px;
+   text-decoration: none;
+   vertical-align: middle;
+   }
+
+   
+   #contents-on-chart-only-type-form input , #contents-on-chart-only-type-form select{
+       float: left;
+       margin-right: 10px;
+   }
