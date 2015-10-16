@@ -1,4 +1,5 @@
 <?php
+
 function contents_on_chart_init() {
     
 }
@@ -25,24 +26,37 @@ function contents_on_chart_menu() {
         'access arguments' => array('administer site configuration'),
         'weight'=>-100,
     );
-    $items['admin/config/contents_on_chart/nodes'] = array(
+    $items['admin/config/contents_on_chart/data/number-nodes'] = array(
         'title' => 'Number of nodes in content types',
         'description' => 'Display chart total number of nodes in diffrent diffrent content types',
         'page callback'=>array('contents_on_chart_page'),
         'access arguments' => array('administer site configuration')
     );
-    $items['admin/config/contents_on_chart/date-wise-nodes'] = array(
+    $items['admin/config/contents_on_chart/data/date-wise-nodes'] = array(
         'title' => 'Date wise nodes chart in all content type',
         'description' => 'Display date wise nodes',
-        'page callback'=>array('contents_on_chart_date_wise_page'),
+        'page callback'=>array('contents_on_chart_page'),
         'access arguments' => array('administer site configuration')
     );
-    $items['admin/config/contents_on_chart/user-wise-nodes'] = array(
+    $items['admin/config/contents_on_chart/data/user-wise-nodes'] = array(
         'title' => 'User wise nodes chart in all content type',
         'description' => 'User wise nodes',
-        'page callback'=>array('contents_on_chart_user_wise_page'),
+        'page callback'=>array('contents_on_chart_page'),
         'access arguments' => array('administer site configuration')
     );
+    $items['admin/config/contents_on_chart/data/node-revision'] = array(
+        'title' => 'Number of revision for nodes',
+        'description' => 'revision for nodes',
+        'page callback'=>array('contents_on_chart_page'),
+        'access arguments' => array('administer site configuration')
+    );
+    $items['admin/config/contents_on_chart/data/db-logs'] = array(
+        'title' => 'Database Logs',
+        'description' => 'Rencent database logs',
+        'page callback'=>array('contents_on_chart_page'),
+        'access arguments' => array('administer site configuration')
+    );
+    
     return $items;
   }
 
@@ -53,7 +67,7 @@ function contents_on_chart_only_type_form($form, &$form_state) {
     $default            =   isset($_GET['chartType'])?$_GET['chartType']:"";
     $form['chartType'] = array(
         '#type'=>'select',
-        '#options'=>array("bar"=>"bar","area"=>"area","line"=>"line" ,"pie"=>"pie"),
+        '#options'=>contents_on_chart_all_types(),
         '#title'=> t('Choose Chart Type :'),
         '#default_value'=>array("$default"),
     );
@@ -96,7 +110,7 @@ function contents_on_chart_form($form, &$form_state) {
   );
   $form['chartType'] = array(
         '#type'=>'select',
-        '#options'=>array("bar"=>"bar","area"=>"area","line"=>"line" ,"pie"=>"pie"),
+        '#options'=>contents_on_chart_all_types(),
         '#title'=> t('Choose Chart Type :'),
   );
   $form['submit'] = array(
@@ -144,33 +158,23 @@ function contents_on_chart_form_submit($form,&$form_state) {
     $data['date']['from']   =   $values['dateFrom'];
     $data['date']['to']     =   $values['dateTo'];
     variable_set('contents_on_chart_data', $data);
-    drupal_goto('admin/config/contents_on_chart/nodes');
+    drupal_goto('admin/config/contents_on_chart/data/date-wise-nodes');
 }
 
 /**
  * THEME CALLBACK FUNTION to display nodes in content types
  */
 function contents_on_chart_page() {
+    $arg4       =   arg(4);
+    $callTpl    =   isset($arg4)?$arg4:"node";
+    $form       =   drupal_get_form('contents_on_chart_only_type_form');
+    $extra      =   array();
+    if($arg4=='db-logs') {
+        $extra  =   contents_on_chart_db_logs();
+    }
     drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/Chart.js', 'file');
     drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/content_on_chart.js', 'file');
-    return (variable_get('contents_on_chart_data'))?theme('nodes_chart'):"Please submit form before diaplay chart";
-}
-
-/**
- * THEME CALLBACK FUNTION to display date wise nodes in content types
- */
-function contents_on_chart_date_wise_page() {
-    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/Chart.js', 'file');
-    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/content_on_chart.js', 'file');
-    return (variable_get('contents_on_chart_data'))?theme('date_wise_nodes_chart'):"Please submit form before diaplay chart";
-}
-/**
- * THEME CALLBACK FUNTION to display user wise nodes in content types
- */
-function contents_on_chart_user_wise_page() {
-    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/Chart.js', 'file');
-    drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/content_on_chart.js', 'file');
-    return (variable_get('contents_on_chart_data'))?theme('user_wise_nodes_chart'):"Please submit form before diaplay chart";
+    return (variable_get('contents_on_chart_data'))?theme($callTpl,array("form"=>$form,"extra"=>$extra)):"Please submit form before diaplay chart";
 }
 
 /**
@@ -178,14 +182,20 @@ function contents_on_chart_user_wise_page() {
  */
 function contents_on_chart_theme() {
     $themes = array (
-        'nodes_chart' => array(
+        'number-nodes' => array(
             'template' => 'templates/nodes-chart', 
         ) ,
-        'date_wise_nodes_chart' => array(
+        'date-wise-nodes' => array(
             'template' => 'templates/date-wise-node-chart', 
         ) ,
-        'user_wise_nodes_chart' => array(
+        'user-wise-nodes' => array(
             'template' => 'templates/user-wise-node-chart', 
+        ) ,
+        'node-revision' => array(
+            'template' => 'templates/node-revision-node-chart', 
+        ) ,
+        'db-logs' => array(
+            'template' => 'templates/db-logs', 
         ) ,
     );
     return $themes;
@@ -194,9 +204,8 @@ function contents_on_chart_theme() {
 /**
  * Checker function
  */
-
 function contents_on_chart_verify_chartType($chart){
-    $charts =   array("bar"=>"bar","area"=>"area","line"=>"line" ,"pie"=>"pie");
+    $charts =   array("bar"=>"bar","area"=>"area","line"=>"line" ,"pie"=>"pie" ,"column"=>"column");
     if(in_array($chart, $charts)) {
         return $chart;
     }
@@ -204,3 +213,26 @@ function contents_on_chart_verify_chartType($chart){
         return "bar";
     }
 }
+
+function contents_on_chart_all_types() {
+    $charts =   array();
+    $charts =   array("bar"=>"bar","area"=>"area","column"=>"column","line"=>"line" ,"pie"=>"pie" );
+    return $charts;
+}
+
+function contents_on_chart_db_logs() {
+    $query = db_select('watchdog','u');
+    $query->fields('u',array('type'));
+    $query->addExpression('COUNT(wid)', 'wid');
+    $result = $query->groupby('u.type')->execute()->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+}
+//    $city_name  =   "sitarganj";
+//    $country_code   =   '';
+//    $query = "http://api.openweathermap.org/data/2.5/weather?q=".$city_name.",".$country_code."&APPID=0e03d78c4013a996bf1e718c8427468d"; 
+//
+//    $getData = drupal_http_request($query);
+//    print '<pre>';
+//    print_r($getData);
+//    print '</pre>';
+//}

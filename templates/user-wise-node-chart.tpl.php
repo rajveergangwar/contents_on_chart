@@ -18,13 +18,18 @@ foreach ($userContent as $key => $value) {
     $chartArray['totalNodes'][$key]['username'] = $value['username'];
 }
 $chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['chartType'];
-$form = drupal_get_form('contents_on_chart_only_type_form');
-print '<form id="'.$form['#id'].'" onchange="submitThisForm()" >'; 
-print render($form['chartType']);
-print render($form['submit']);
-print '</form>';
-$chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['chartType'];
 ?>
+<form class="form-inline" role="form" id="<?php print $form['#id'] ?>">
+  <div class="form-group">
+    <label for="pwd">Select Chart Type:</label>
+    <select onchange="submitThisForm();" name="<?php print $form['chartType']['#name'] ?>">
+        <?php foreach($form['chartType']['#options'] as $key=>$values ) { ?>
+        <option><?php print $values ?></option>
+        <?php } ?>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-default">Submit</button>
+</form>
 <div id="chartContainer" style="height: 300px; width: 100%;">
     <script type="text/javascript">
         window.onload = function () {
@@ -45,6 +50,7 @@ $chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['ch
                     {
                         type: "<?php print contents_on_chart_verify_chartType($chartType) ?>",
                         theme: "theme2",
+                        indexLabel: "{y}",
                         showInLegend: false,
                         dataPoints: [
 <?php foreach ($chartArray['totalNodes'] as $cTypes => $count) { ?>

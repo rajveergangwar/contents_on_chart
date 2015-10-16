@@ -1,22 +1,26 @@
 <?php
 $data = variable_get('contents_on_chart_data');
-$typesArray = array();
-$chartArray = array();
-$dateFrom   = strtotime($data['date']['from']);
-$dateTo     = strtotime($data['date']['to']);
-for ($i=$dateFrom; $i<=$dateTo; $i+=86400) { 
-    $nextDateTimeStamp      =   $i+86400;   
+$nodeTypes = node_type_get_names();
+$typesArray =   array();
+$chartArray =   array();
+$revision   =   array();
+foreach ($nodeTypes as $key => $value) {
+    $typesArray[$key] = array();
+}
+foreach ($typesArray as $nodeTypeKey => $nodeTypeValue) {
     foreach ($data['nodeData'] as $key => $value) {
-        if ($value['created']>=$i && $value['created']<=$nextDateTimeStamp) {
-            $typesArray[date('d M Y',$i)][] = $value;
+        if ($value['type'] == $nodeTypeKey) {
+            $typesArray[$nodeTypeKey][] = $value;
+            $xNode = new stdClass();
+            $xNode->nid = $data['nodeData'][$key]['nid'];
+            $revision[$xNode->nid] =   node_revision_list($xNode);
         }
     }
 }
-?>
-<?php
-foreach ($typesArray as $key => $value) {
-    $chartArray['totalNodes'][$key] = count($value);
+foreach ($revision as $nodesID => $revisionsArray) {
+    $chartArray['totalNodes'][$nodesID] = count($revisionsArray);
 }
+ksort($chartArray['totalNodes']);
 $chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['chartType'];
 ?>
 <form class="form-inline" role="form" id="<?php print $form['#id'] ?>">
@@ -53,9 +57,9 @@ $chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['ch
                         showInLegend: false,
                         indexLabel: "{y}",
                         dataPoints: [
-                            <?php foreach ($chartArray['totalNodes'] as $dateHas => $count) { ?>
-                                {label: '<?php print $dateHas; ?>', y: <?php print $count ?> , legendText:'<?php print $dateHas; ?>'},
-                    <?php } ?>
+                            <?php foreach ($chartArray['totalNodes'] as $cTypes => $count) { ?>
+                                {label: 'Node Id ( <?php print $cTypes ?> )', y: <?php print $count ?> , legendText:'<?php print $cTypes; ?>'},
+                        <?php } ?>
 
                         ]
                     }
@@ -65,5 +69,3 @@ $chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['ch
             chart.render();
         }
     </script>
-    
-  
