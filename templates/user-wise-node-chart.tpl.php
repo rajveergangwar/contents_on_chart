@@ -33,6 +33,7 @@ print '<ul>';
     </select>
   </div>
   <button type="submit" class="btn btn-default">Submit</button>
+<div></div>
 </form>
 <div id="chartContainer" style="height: 300px; width: 100%;">
     <script type="text/javascript">
