@@ -1,7 +1,6 @@
 <?php
 $data = variable_get('contents_on_chart_data');
 $users = entity_load('user');
-//print_r($users);
 $userContent = array();
 $chartArray = array();
 foreach ($users as $key => $value) {
@@ -18,6 +17,11 @@ foreach ($userContent as $key => $value) {
     $chartArray['totalNodes'][$key]['username'] = $value['username'];
 }
 $chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['chartType'];
+print '<ul class="content_on_charts">';
+foreach($extra['tabs'] as $links) {
+    print '<li>'.$links.'</li>';
+}
+print '<ul>';
 ?>
 <form class="form-inline" role="form" id="<?php print $form['#id'] ?>">
   <div class="form-group">

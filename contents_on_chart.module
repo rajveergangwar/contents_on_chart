@@ -1,7 +1,8 @@
 <?php
 
 function contents_on_chart_init() {
-    
+    $arg2   =   arg(2);
+    $breadcrumb = array();
 }
 /**
  * HOOK_MENU
@@ -160,6 +161,18 @@ function contents_on_chart_form_submit($form,&$form_state) {
     variable_set('contents_on_chart_data', $data);
     drupal_goto('admin/config/contents_on_chart/data/date-wise-nodes');
 }
+/**
+ * page menus
+ */
+
+function contents_on_chart_page_menus() {
+        $menus          =   contents_on_chart_submenu_tree_all_data();
+        $menusLinks     =   array();
+        foreach($menus as $keys=>$values) {
+            $menusLinks[]   =   l($values['link']['options']['attributes']['title'],$values['link']['link_path']);
+        }
+        return $menusLinks;
+}
 
 /**
  * THEME CALLBACK FUNTION to display nodes in content types
@@ -169,8 +182,9 @@ function contents_on_chart_page() {
     $callTpl    =   isset($arg4)?$arg4:"node";
     $form       =   drupal_get_form('contents_on_chart_only_type_form');
     $extra      =   array();
+    $extra['tabs']  =   contents_on_chart_page_menus();
     if($arg4=='db-logs') {
-        $extra  =   contents_on_chart_db_logs();
+        $extra['logsData']  =   contents_on_chart_db_logs();
     }
     drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/Chart.js', 'file');
     drupal_add_js(drupal_get_path('module', 'contents_on_chart') .'/js/content_on_chart.js', 'file');
@@ -227,12 +241,18 @@ function contents_on_chart_db_logs() {
     $result = $query->groupby('u.type')->execute()->fetchAll(PDO::FETCH_ASSOC);
     return $result;
 }
-//    $city_name  =   "sitarganj";
-//    $country_code   =   '';
-//    $query = "http://api.openweathermap.org/data/2.5/weather?q=".$city_name.",".$country_code."&APPID=0e03d78c4013a996bf1e718c8427468d"; 
-//
-//    $getData = drupal_http_request($query);
-//    print '<pre>';
-//    print_r($getData);
-//    print '</pre>';
-//}
+
+function contents_on_chart_submenu_tree_all_data($title='', $menu = 'management') {
+    $path = 'admin/config/contents_on_chart/';
+    $parent = menu_link_get_preferred($path);
+    $parameters = array(
+        'active_trail' => array($parent['plid']),
+        'only_active_trail' => FALSE,
+        'min_depth' => $parent['depth']+1,
+        'max_depth' => $parent['depth']+1,
+        'conditions' => array('plid' => $parent['mlid']),
+      );
+
+    $children = menu_build_tree($parent['menu_name'], $parameters);
+    return $children;
+}

@@ -18,6 +18,11 @@ foreach ($typesArray as $key => $value) {
     $chartArray['totalNodes'][$key] = count($value);
 }
 $chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['chartType'];
+print '<ul class="content_on_charts">';
+foreach($extra['tabs'] as $links) {
+    print '<li>'.$links.'</li>';
+}
+print '<ul>';
 ?>
 <form class="form-inline" role="form" id="<?php print $form['#id'] ?>">
   <div class="form-group">
@@ -35,7 +40,7 @@ $chartType            =   isset($_GET['chartType'])?$_GET['chartType']:$data['ch
         window.onload = function () {
             var chart = new CanvasJS.Chart("chartContainer", {
                 title: {
-                    text: "No of nodes in Content Types from date : <?php print $data['date']['from'] ?> ,  date to : <?php print $data['date']['to'] ?>"
+                    text: "date wise nodes date From : <?php print $data['date']['from'] ?> ,  date to : <?php print $data['date']['to'] ?>"
                 },
                 animationEnabled: true,
                 legend:{
